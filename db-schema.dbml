@@ -1,0 +1,46 @@
+Table users {
+
+    id_user uuid [primary key]
+    created_at timestamp
+    updated_at timestamp
+    name varchar
+    password varchar /*hash*/
+    role enum("user", "admin")
+
+}
+
+Table articles {
+
+    id_article uuid [primary key]
+    id_user uuid
+    created_at timestamp
+    updated_at timestamp
+    content text
+
+}
+Ref: "articles"."id_user" > "users"."id_user"
+
+Table tags {
+
+    id_tag uuid [primary key]
+    name varchar
+
+}
+
+Table article_tag {
+
+    id_article uuid [primary key]
+    id_tag uuid [primary key]
+
+}
+Ref: "article_tag"."id_article" > "articles"."id_article"
+Ref: "article_tag"."id_tag" > "tags"."id_tag"
+
+Table user_tag {
+
+    id_user uuid [primary key]
+    id_tag uuid [primary key]
+
+}
+Ref: "user_tag"."id_user" > "users"."id_user"
+Ref: "user_tag"."id_tag" > "tags"."id_tag"
