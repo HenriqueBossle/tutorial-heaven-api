@@ -26,7 +26,7 @@ Essa separação mantém o frontend desacoplado do backend e facilita a evoluç�
 
 - Laravel 13 como backend.
 - Next.js como frontend.
-- MySQL como banco de dados.
+- Neon DB (Postgres SQL) como banco de dados.
 - Sanctum para autenticação de API e sessão, quando aplicável.
 - Vite e Tailwind CSS para assets do projeto Laravel.
 
