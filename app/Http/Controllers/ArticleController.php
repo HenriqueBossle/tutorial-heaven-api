@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleStoreRequest;
+use App\Http\Requests\ArticleUpdateRequest;
 use App\Models\Article;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,6 @@ class ArticleController extends Controller
             'data' => $articles,
         ]);
     }
-
     public function store(ArticleStoreRequest $request)
     {
         $article = Article::create($request->validated());
@@ -33,5 +33,30 @@ class ArticleController extends Controller
         return response()->json($article, 201);
     }
 
-    
+    public function update(ArticleUpdateRequest $request, Article $article): JsonResponse {
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $article->update($request->validated());
+
+        return response()->json($article);
+    }
+
+    public function destroy(Article $article): JsonResponse
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $article->delete();
+
+        return response()->json(null, 204);
+    }
+
+
 }
