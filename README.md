@@ -18,7 +18,7 @@ O fluxo principal funciona assim:
 1. O usuário interage com a aplicação Next.js.
 2. O frontend consome os endpoints expostos pelo Laravel.
 3. O Laravel processa validações, regras de negócio e autenticação.
-4. Os dados são armazenados no MySQL.
+4. Os dados são armazenados no Neon DB (Postgres SQL).
 
 Essa separação mantém o frontend desacoplado do backend e facilita a evolução das duas partes de forma independente.
 
