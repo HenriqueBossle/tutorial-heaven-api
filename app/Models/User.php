@@ -34,11 +34,21 @@ class User extends Authenticatable
 
     public function articles(): HasMany
     {
-        return $this->hasMany(Article::class, 'id_user', 'id_user');
+        return $this->hasMany(Article::class);
     }
 
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class, 'user_tag', 'id_user', 'id_tag');
+        return $this->belongsToMany(Tag::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
     }
 }
