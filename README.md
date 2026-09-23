@@ -7,7 +7,7 @@ Este projeto segue uma arquitetura separada em duas camadas principais:
 - Backend em Laravel, responsável pela API, autenticação, regras de negócio e persistência.
 - Frontend em Next.js, responsável pela interface, consumo da API e experiência do usuário.
 
-O banco de dados utilizado é MySQL, com o esquema documentado no arquivo [db-schema.dbml](db-schema.dbml).
+O banco de dados utilizado é NeonDB (PostagresSQL), com o esquema documentado no arquivo [db-schema.dbml](db-schema.dbml).
 
 ![Schema](image.png)
 
