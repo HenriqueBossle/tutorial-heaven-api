@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleStoreRequest;
 use App\Http\Requests\ArticleUpdateRequest;
+use App\Http\Resources\ArticleResource;
 use App\Models\Article;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ArticleController extends Controller
 {
 
-    public function index(): JsonResponse
+    public function index()
     {
         if (!Auth::check()) {
             return response()->json([
@@ -20,17 +20,16 @@ class ArticleController extends Controller
             ], 401);
         }
 
-        $articles = Article::latest()->paginate(10);
+        $articles = Article::with('user')->latest()->paginate(10);
 
-        return response()->json([
-            'data' => $articles,
-        ]);
+        return ArticleResource::collection($articles);
     }
     public function store(ArticleStoreRequest $request)
     {
         $article = Article::create($request->validated());
+        $article->load('user');
 
-        return response()->json($article, 201);
+        return response()->json(new ArticleResource($article), 201);
     }
 
     public function update(ArticleUpdateRequest $request, Article $article): JsonResponse {
@@ -41,8 +40,9 @@ class ArticleController extends Controller
         }
 
         $article->update($request->validated());
+        $article->load('user');
 
-        return response()->json($article);
+        return response()->json(new ArticleResource($article));
     }
 
     public function destroy(Article $article): JsonResponse
