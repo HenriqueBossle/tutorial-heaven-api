@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Article;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 
 class ArticleUpdateRequest extends FormRequest
 {
@@ -12,7 +14,7 @@ class ArticleUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('create', Article::class);
     }
 
     /**
