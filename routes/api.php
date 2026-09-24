@@ -14,5 +14,12 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth:sanctum');
 
-Route::middleware('auth:sanctum')->apiResource('articles', ArticleController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::apiResource('articles', ArticleController::class)
+        ->only(['index', 'show']);
+
+    Route::apiResource('articles', ArticleController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->middleware('can:create,App\Models\Article');
+});

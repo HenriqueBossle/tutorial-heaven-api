@@ -12,7 +12,7 @@ class ArticlePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user !== null;
+        return true;
     }
 
     /**
@@ -20,7 +20,7 @@ class ArticlePolicy
      */
     public function view(User $user, Article $article): bool
     {
-        return $user !== null;
+        return true;
     }
 
     /**
