@@ -6,7 +6,6 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -15,18 +14,12 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt($credentials)) {
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
-        }
-
-        $user = $request->user();
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unable to authenticate user',
-            ], 500);
         }
 
         return response()->json([
