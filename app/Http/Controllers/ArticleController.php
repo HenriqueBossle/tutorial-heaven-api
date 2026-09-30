@@ -52,6 +52,8 @@ class ArticleController extends Controller
             ], 401);
         }
 
+        FacadesGate::authorize('view', $article);
+
         $article->load('user');
 
         return response()->json(new ArticleResource($article));
