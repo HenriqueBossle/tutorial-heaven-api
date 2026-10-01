@@ -84,7 +84,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/articles')
+            ->getJson('/api/v1/articles')
             ->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -103,7 +103,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/articles/' . $article->getKey())
+            ->getJson('/api/v1/articles/' . $article->getKey())
             ->assertOk()
             ->assertJsonPath('content', 'Single article')
             ->assertJsonPath('user_id', $user->id);
@@ -114,7 +114,7 @@ class RouteCoverageTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->postJson('/api/articles', [
+            ->postJson('/api/v1/articles', [
                 'content' => 'Article created through route',
             ])
             ->assertCreated()
@@ -136,7 +136,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->putJson('/api/articles/' . $article->getKey(), [
+            ->putJson('/api/v1/articles/' . $article->getKey(), [
                 'content' => 'Updated content',
             ])
             ->assertOk()
@@ -157,7 +157,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->deleteJson('/api/articles/' . $article->getKey())
+            ->deleteJson('/api/v1/articles/' . $article->getKey())
             ->assertNoContent();
 
         $this->assertDatabaseMissing('articles', [

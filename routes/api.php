@@ -20,12 +20,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/tags/steps', [TagController::class, 'getFormSteps']);
     Route::get('/tags', [TagController::class, 'index']);
     Route::post('/tags', [TagController::class, 'store']);
-Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('articles', ArticleController::class)
-        ->only(['index', 'show']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('articles', ArticleController::class)
+            ->only(['index', 'show']);
 
-    Route::apiResource('articles', ArticleController::class)
-        ->only(['store', 'update', 'destroy'])
-        ->middleware('can:create,App\Models\Article');
+        Route::apiResource('articles', ArticleController::class)
+            ->only(['store', 'update', 'destroy'])
+            ->middleware('can:create,App\Models\Article');
+    });
 });
