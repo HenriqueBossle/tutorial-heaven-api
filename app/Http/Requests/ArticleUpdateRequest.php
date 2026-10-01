@@ -14,7 +14,7 @@ class ArticleUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Gate::allows('create', Article::class);
+        return Gate::allows('update', $this->route('article') ?? Article::class);
     }
 
     /**

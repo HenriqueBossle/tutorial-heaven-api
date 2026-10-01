@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('article_tag', function (Blueprint $table) {
-            $table->foreignUuid('id_article')->constrained('articles', 'id_article')->cascadeOnDelete();
-            $table->foreignUuid('id_tag')->constrained('tags', 'id_tag')->cascadeOnDelete();
-            $table->primary(['id_article', 'id_tag']);
+            $table->foreignId('article_id')->constrained('articles')->cascadeOnDelete();
+            $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
+            $table->primary(['article_id', 'tag_id']);
         });
     }
 
