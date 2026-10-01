@@ -1,14 +1,12 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tag extends Model
 {
-    use HasFactory;
-
-    // Adicione esta propriedade liberando os campos para escrita em massa
     protected $fillable = [
         'name',
         'slug',
@@ -18,8 +16,13 @@ class Tag extends Model
         'is_active',
     ];
 
-    public function users()
+    public function articles(): BelongsToMany
     {
+        return $this->belongsToMany(Article::class)->withTimestamps();
+    }
+
+    public function users(): BelongsToMany
+    {   
         return $this->belongsToMany(User::class)->withTimestamps();
     }
 }

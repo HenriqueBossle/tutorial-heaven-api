@@ -6,7 +6,6 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -15,16 +14,18 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt($credentials)) {
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
         }
 
-        $request->session()->regenerate();
-
         return response()->json([
             'message' => 'Logged in successfully',
+            'token' => $user->createToken('auth-token')->plainTextToken,
+            'user' => $user,
         ]);
     }
 
@@ -38,22 +39,16 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
-        Auth::login($user);
-
-        $request->session()->regenerate();
-
         return response()->json([
             'message' => 'Registered successfully',
+            'token' => $user->createToken('auth-token')->plainTextToken,
             'user' => $user,
         ], 201);
     }
 
     public function logout(Request $request)
     {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'Logged out successfully',
