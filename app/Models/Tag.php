@@ -7,18 +7,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tag extends Model
 {
-    protected $fillable = 
-    [        
-        'name'
+    protected $fillable = [
+        'name',
+        'slug',
+        'category',
+        'description',
+        'display_order',
+        'is_active',
     ];
 
     public function articles(): BelongsToMany
     {
-        return $this->belongsToMany(Article::class);
+        return $this->belongsToMany(Article::class)->withTimestamps();
     }
 
     public function users(): BelongsToMany
     {   
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 }

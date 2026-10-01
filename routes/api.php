@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
@@ -14,6 +15,11 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth:sanctum');
 
+
+Route::prefix('v1')->group(function () {
+    Route::get('/tags/steps', [TagController::class, 'getFormSteps']);
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::post('/tags', [TagController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('articles', ArticleController::class)
