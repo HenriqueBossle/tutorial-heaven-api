@@ -8,9 +8,9 @@ use App\Http\Resources\ArticleResource;
 use App\Models\Article;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate as FacadesGate;
-use Laravel\Mcp\Request;
 
 class ArticleController extends Controller
 {
@@ -38,7 +38,11 @@ class ArticleController extends Controller
     public function store(ArticleStoreRequest $request)
     {
         FacadesGate::authorize('create', Article::class);
-        $article = Article::create($request->validated());
+
+        $data = $request->validated();
+        $data['id_user'] = $request->user()->id;
+
+        $article = Article::create($data);
         $article->load('user');
 
         return response()->json(new ArticleResource($article), 201);
@@ -66,8 +70,7 @@ class ArticleController extends Controller
             ], 401);
         }
 
-        FacadesGate::authorize('update', Article::class);
-
+        FacadesGate::authorize('update', $article);
 
         $article->update($request->validated());
         $article->load('user');
@@ -83,8 +86,7 @@ class ArticleController extends Controller
             ], 401);
         }
 
-        FacadesGate::authorize('destroy', Article::class);
-
+        FacadesGate::authorize('delete', $article);
 
         $article->delete();
 

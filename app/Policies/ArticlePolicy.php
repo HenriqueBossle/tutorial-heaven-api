@@ -47,4 +47,9 @@ class ArticlePolicy
         return $user->isAdmin();
     }
 
+    public function destroy(User $user, Article $article): bool
+    {
+        return $this->delete($user, $article);
+    }
+
 }

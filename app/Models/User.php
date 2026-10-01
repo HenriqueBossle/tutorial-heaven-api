@@ -35,7 +35,7 @@ class User extends Authenticatable
 
     public function articles(): HasMany
     {
-        return $this->hasMany(Article::class)->withTimestamps();
+        return $this->hasMany(Article::class, 'id_user');
     }
 
     public function tags(): BelongsToMany
