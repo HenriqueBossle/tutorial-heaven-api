@@ -17,7 +17,7 @@ class ArticleResource extends JsonResource
         return [
             'id' => $this->id_article ?? $this->getKey(),
             'user_id' => $this->id_user,
-            'content' => $this->content,
+            'content' => base64_encode($this->content),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             'user' => $this->whenLoaded('user', fn () => new UserResource($this->user)),
