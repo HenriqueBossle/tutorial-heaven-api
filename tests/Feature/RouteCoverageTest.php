@@ -91,7 +91,7 @@ class RouteCoverageTest extends TestCase
                     ['id', 'user_id', 'content', 'created_at', 'updated_at'],
                 ],
             ])
-            ->assertJsonPath('data.0.content', 'Article one');
+            ->assertJsonPath('data.0.content', base64_encode('Article one'));
     }
 
     public function test_articles_show_route_returns_a_single_article_for_an_authenticated_user(): void
@@ -105,7 +105,7 @@ class RouteCoverageTest extends TestCase
         $this->withHeaders($this->authHeaders($user))
             ->getJson('/api/v1/articles/' . $article->getKey())
             ->assertOk()
-            ->assertJsonPath('content', 'Single article')
+            ->assertJsonPath('content', base64_encode('Single article'))
             ->assertJsonPath('user_id', $user->id);
     }
 
@@ -115,10 +115,10 @@ class RouteCoverageTest extends TestCase
 
         $this->withHeaders($this->authHeaders($admin))
             ->postJson('/api/v1/articles', [
-                'content' => 'Article created through route',
+                'content' => base64_encode('Article created through route'),
             ])
             ->assertCreated()
-            ->assertJsonPath('content', 'Article created through route')
+            ->assertJsonPath('content', base64_encode('Article created through route'))
             ->assertJsonPath('user_id', $admin->id);
 
         $this->assertDatabaseHas('articles', [
@@ -137,10 +137,10 @@ class RouteCoverageTest extends TestCase
 
         $this->withHeaders($this->authHeaders($admin))
             ->putJson('/api/v1/articles/' . $article->getKey(), [
-                'content' => 'Updated content',
+                'content' => base64_encode('Updated content'),
             ])
             ->assertOk()
-            ->assertJsonPath('content', 'Updated content');
+            ->assertJsonPath('content', base64_encode('Updated content'));
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
@@ -163,5 +163,35 @@ class RouteCoverageTest extends TestCase
         $this->assertDatabaseMissing('articles', [
             'id' => $article->id,
         ]);
+    }
+
+    public function test_article_content_round_trips_as_base64_encoded_utf8(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $markdown = "# Olá, mundo! 👋\n\nConteúdo com ação e coração 💙.";
+
+        $response = $this->withHeaders($this->authHeaders($admin))
+            ->postJson('/api/v1/articles', [
+                'content' => base64_encode($markdown),
+            ])
+            ->assertCreated()
+            ->assertJsonPath('content', base64_encode($markdown));
+
+        $this->assertDatabaseHas('articles', [
+            'id' => $response->json('id'),
+            'content' => $markdown,
+        ]);
+    }
+
+    public function test_article_content_rejects_invalid_base64_or_utf8(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->withHeaders($this->authHeaders($admin))
+            ->postJson('/api/v1/articles', [
+                'content' => '%%%not-base64%%%',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('content');
     }
 }

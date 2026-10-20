@@ -25,7 +25,7 @@ class ArticleResourceTest extends TestCase
 
         $this->assertSame('article-123', $payload['id']);
         $this->assertSame('user-123', $payload['user_id']);
-        $this->assertSame('Conteúdo do artigo', $payload['content']);
+        $this->assertSame(base64_encode('Conteúdo do artigo'), $payload['content']);
         $this->assertSame('João da Silva', $payload['user']['name']);
     }
 }
