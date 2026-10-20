@@ -21,7 +21,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/tags', [TagController::class, 'index']);
     Route::post('/tags', [TagController::class, 'store']);
 
-
     Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class)
             ->only(['index', 'show', 'update', 'destroy']);
