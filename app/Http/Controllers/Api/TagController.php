@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTagRequest;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
     // Retorna as tags ordenadas por categoria e ordem de exibição
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $tags = Tag::where('is_active', true)
             ->orderBy('category')
@@ -35,6 +36,31 @@ class TagController extends Controller
             'data' => $tag
         ], 201);
     }
+
+
+    public function show(int $id): JsonResponse
+    {
+    $user = User::find($id);
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Usuário não encontrado.'
+        ], 404);
+    }
+
+    $tags = $user->tags()
+        ->orderBy('category')
+        ->orderBy('display_order')
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $tags
+    ], 200);
+
+    }
+
 
     // Retorna as tags em ordem sequencial para montagem do formulário no Front
     public function getFormSteps(): JsonResponse
