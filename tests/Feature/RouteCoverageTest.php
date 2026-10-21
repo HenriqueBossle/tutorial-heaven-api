@@ -15,13 +15,13 @@ class RouteCoverageTest extends TestCase
     protected function authHeaders(User $user): array
     {
         return [
-            'Authorization' => 'Bearer ' . $user->createToken('test-token')->plainTextToken,
+            'Authorization' => 'Bearer '.$user->createToken('test-token')->plainTextToken,
         ];
     }
 
     public function test_user_route_requires_authentication(): void
     {
-        $this->getJson('/api/user')
+        $this->getJson('/user')
             ->assertUnauthorized();
     }
 
@@ -31,7 +31,7 @@ class RouteCoverageTest extends TestCase
             'password' => Hash::make('password123'),
         ]);
 
-        $this->postJson('/api/login', [
+        $this->postJson('/login', [
             'email' => $user->email,
             'password' => 'password123',
         ])
@@ -46,7 +46,7 @@ class RouteCoverageTest extends TestCase
 
     public function test_register_route_creates_a_user_and_returns_a_token(): void
     {
-        $this->postJson('/api/register', [
+        $this->postJson('/register', [
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
             'password' => 'password123',
@@ -70,7 +70,7 @@ class RouteCoverageTest extends TestCase
         $user = User::factory()->create();
 
         $this->withHeaders($this->authHeaders($user))
-            ->postJson('/api/logout')
+            ->postJson('/logout')
             ->assertOk()
             ->assertJsonPath('message', 'Logged out successfully');
     }
@@ -84,7 +84,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/v1/articles')
+            ->getJson('/articles')
             ->assertOk()
             ->assertJsonStructure([
                 'data' => [
@@ -103,7 +103,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/v1/articles/' . $article->getKey())
+            ->getJson('/articles/'.$article->getKey())
             ->assertOk()
             ->assertJsonPath('content', base64_encode('Single article'))
             ->assertJsonPath('user_id', $user->id);
@@ -114,7 +114,7 @@ class RouteCoverageTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->postJson('/api/v1/articles', [
+            ->postJson('/articles', [
                 'content' => base64_encode('Article created through route'),
             ])
             ->assertCreated()
@@ -136,7 +136,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->putJson('/api/v1/articles/' . $article->getKey(), [
+            ->putJson('/articles/'.$article->getKey(), [
                 'content' => base64_encode('Updated content'),
             ])
             ->assertOk()
@@ -157,7 +157,7 @@ class RouteCoverageTest extends TestCase
         ]);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->deleteJson('/api/v1/articles/' . $article->getKey())
+            ->deleteJson('/articles/'.$article->getKey())
             ->assertNoContent();
 
         $this->assertDatabaseMissing('articles', [
@@ -171,7 +171,7 @@ class RouteCoverageTest extends TestCase
         $markdown = "# Olá, mundo! 👋\n\nConteúdo com ação e coração 💙.";
 
         $response = $this->withHeaders($this->authHeaders($admin))
-            ->postJson('/api/v1/articles', [
+            ->postJson('/articles', [
                 'content' => base64_encode($markdown),
             ])
             ->assertCreated()
@@ -188,7 +188,7 @@ class RouteCoverageTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->withHeaders($this->authHeaders($admin))
-            ->postJson('/api/v1/articles', [
+            ->postJson('/articles', [
                 'content' => '%%%not-base64%%%',
             ])
             ->assertUnprocessable()

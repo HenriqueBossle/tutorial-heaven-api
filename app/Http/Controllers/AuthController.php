@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
@@ -25,7 +26,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged in successfully',
             'token' => $user->createToken('auth-token')->plainTextToken,
-            'user' => $user,
+            'user' => (new UserResource($user->load('tags')))->toArray($request),
         ]);
     }
 
@@ -37,12 +38,13 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role' => 'user',
         ]);
 
         return response()->json([
             'message' => 'Registered successfully',
             'token' => $user->createToken('auth-token')->plainTextToken,
-            'user' => $user,
+            'user' => (new UserResource($user->load('tags')))->toArray($request),
         ], 201);
     }
 

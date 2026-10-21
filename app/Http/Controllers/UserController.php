@@ -18,7 +18,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return UserResource::collection(User::query()->latest()->paginate(10));
+        return UserResource::collection(User::query()->with('tags')->latest()->paginate(10));
     }
 
     public function show(Request $request, User $user): UserResource|JsonResponse
@@ -27,14 +27,14 @@ class UserController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return new UserResource($user);
+        return new UserResource($user->load('tags'));
     }
 
     public function update(UserRequest $request, User $user): UserResource
     {
         $user->update($request->validated());
 
-        return new UserResource($user->refresh());
+        return new UserResource($user->refresh()->load('tags'));
     }
 
     public function destroy(Request $request, User $user): JsonResponse

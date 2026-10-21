@@ -6,17 +6,17 @@ Este guia descreve como consumir a API Laravel deste projeto. Os exemplos usam `
 
 ### URL base e prefixos
 
-O servidor Laravel é a origem da API, sem o prefixo no valor de `APP_URL`. As rotas são agrupadas assim:
+O servidor Laravel é a origem da API, sem o prefixo no valor de `APP_URL`. Todas as rotas ficam na raiz do servidor, sem `/api` nem `/v1`:
 
-- `/api`: autenticação e consulta do usuário atual.
-- `/api/v1`: recursos versionados de artigos e tags.
+- `/login`, `/register`, `/logout`, `/user`: autenticação e consulta do usuário atual.
+- `/tags`, `/tags/steps`, `/articles`, `/users`, `/onboarding/tags`: recursos de artigos, tags e usuários.
 
 Exemplos:
 
 ```text
-http://localhost:8000/api/login
-http://localhost:8000/api/v1/articles
-http://localhost:8000/api/v1/tags
+http://localhost:8000/login
+http://localhost:8000/articles
+http://localhost:8000/tags
 ```
 
 ### Cabeçalhos
@@ -50,11 +50,11 @@ Os erros da API são respostas JSON. O campo `message` contém a mensagem geral;
 
 ### Modelo utilizado
 
-O front-end deve usar **Bearer Token**, não autenticação por cookies de SPA stateful. `POST /api/login` e `POST /api/register` retornam um token pessoal do Sanctum no campo `token`. Envie esse valor no cabeçalho `Authorization` em cada chamada protegida. O backend revoga o token corrente no logout.
+O front-end deve usar **Bearer Token**, não autenticação por cookies de SPA stateful. `POST /login` e `POST /register` retornam um token pessoal do Sanctum no campo `token`. Envie esse valor no cabeçalho `Authorization` em cada chamada protegida. O backend revoga o token corrente no logout.
 
 Use HTTPS fora do ambiente local e evite expor o token em logs, URLs ou armazenamento acessível a scripts não confiáveis. O backend não estabelece a sessão de autenticação do front-end por cookies.
 
-### `POST /api/login`
+### `POST /login`
 
 Autentica um usuário existente. Ambos os campos são obrigatórios; `email` deve ser um endereço válido.
 
@@ -75,14 +75,19 @@ Resposta `200 OK`:
     "id": 42,
     "name": "Ana Silva",
     "email": "ana@example.com",
-    "role": "user"
+    "role": "user",
+    "created_at": "2026-10-12T18:29:15.000000Z",
+    "updated_at": "2026-10-12T18:29:15.000000Z",
+    "tags": []
   }
 }
 ```
 
+O objeto `user` segue o mesmo formato de `GET /user`, incluindo as tags já atribuídas ao usuário.
+
 Credenciais incorretas resultam em `401`; falhas de validação do formato dos campos resultam em `422`.
 
-### `POST /api/register`
+### `POST /register`
 
 Cria uma conta e já retorna um token. Campos:
 
@@ -102,7 +107,7 @@ Cria uma conta e já retorna um token. Campos:
 
 Resposta `201 Created`: mesmo formato de `login`, com `message: "Registered successfully"`, `token` e `user`.
 
-### `POST /api/logout`
+### `POST /logout`
 
 Requer `Authorization: Bearer <token>`. Revoga o token usado nesta chamada. Resposta `200 OK`:
 
@@ -114,22 +119,41 @@ Requer `Authorization: Bearer <token>`. Revoga o token usado nesta chamada. Resp
 
 Após o logout, descarte o token no cliente. Chamadas seguintes com ele devem ser tratadas como não autenticadas.
 
-### `GET /api/user`
+### `GET /user`
 
-Requer `Authorization: Bearer <token>`. Retorna o usuário autenticado como JSON (`id`, `name`, `email`, `role` e timestamps disponíveis). A senha e o token não são incluídos. Use esta rota para carregar os dados da conta após recuperar o token.
+Requer `Authorization: Bearer <token>`. Retorna o usuário autenticado como JSON (`id`, `name`, `email`, `role`, `created_at`, `updated_at` e `tags`). A senha e o token não são incluídos. Use esta rota para carregar os dados da conta após recuperar o token.
 
-## 3. Artigos: `/api/v1/articles`
+`tags` traz as tags já atribuídas ao usuário no onboarding (lista vazia quando ele ainda não escolheu nenhuma):
+
+```json
+{
+  "id": 42,
+  "name": "Ana Silva",
+  "email": "ana@example.com",
+  "role": "user",
+  "created_at": "2026-10-12T18:29:15.000000Z",
+  "updated_at": "2026-10-12T18:29:15.000000Z",
+  "tags": [
+    {
+      "id": 1,
+      "name": "Frontend"
+    }
+  ]
+}
+```
+
+## 3. Artigos: `/articles`
 
 Todas as rotas de artigos exigem autenticação Bearer. Usuários autenticados podem listar e consultar artigos; criação, edição e exclusão são restritas a usuários com papel `admin`.
 
 | Método e rota | Descrição | Sucesso |
 | --- | --- | --- |
-| `GET /api/v1/articles` | Lista artigos paginados (10 por página). Aceita `?page=2`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
-| `GET /api/v1/articles/{id}` | Consulta um artigo pelo ID. | `200 OK`, objeto do artigo. |
-| `POST /api/v1/articles` | Cria um artigo. | `201 Created`, objeto criado. |
-| `PUT /api/v1/articles/{id}` | Substitui o conteúdo do artigo. | `200 OK`, objeto atualizado. |
-| `PATCH /api/v1/articles/{id}` | Atualiza o conteúdo do artigo. | `200 OK`, objeto atualizado. |
-| `DELETE /api/v1/articles/{id}` | Exclui o artigo. | `204 No Content`, sem corpo. |
+| `GET /articles` | Lista artigos paginados (10 por página). Aceita `?page=2`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
+| `GET /articles/{id}` | Consulta um artigo pelo ID. | `200 OK`, objeto do artigo. |
+| `POST /articles` | Cria um artigo. | `201 Created`, objeto criado. |
+| `PUT /articles/{id}` | Substitui o conteúdo do artigo. | `200 OK`, objeto atualizado. |
+| `PATCH /articles/{id}` | Atualiza o conteúdo do artigo. | `200 OK`, objeto atualizado. |
+| `DELETE /articles/{id}` | Exclui o artigo. | `204 No Content`, sem corpo. |
 
 ### Codificação Base64 de `content`
 
@@ -143,7 +167,7 @@ Exemplo de conteúdo Markdown:
 Conteúdo com ação e coração 💙.
 ```
 
-Payload de `POST /api/v1/articles` (envie `Authorization: Bearer <token>`):
+Payload de `POST /articles` (envie `Authorization: Bearer <token>`):
 
 ```json
 {
@@ -151,7 +175,7 @@ Payload de `POST /api/v1/articles` (envie `Authorization: Bearer <token>`):
 }
 ```
 
-Resposta de `POST` e formato de `GET /api/v1/articles/{id}`:
+Resposta de `POST` e formato de `GET /articles/{id}`:
 
 ```json
 {
@@ -191,13 +215,13 @@ export function decodeMarkdown(base64) {
 
 `fatal: true` faz uma resposta com bytes que não sejam UTF-8 válido falhar explicitamente, em vez de substituir silenciosamente caracteres. Envie o Markdown já codificado no JSON e decodifique o valor de `content` após analisar a resposta.
 
-## 4. Tags e leituras: `/api/v1/tags`
+## 4. Tags e leituras: `/tags`
 
-Tags são **estritamente Read-Only no front-end**. Use somente as rotas GET a seguir para popular seletores e etapas de formulário. Não crie, edite ou exclua tags a partir do cliente.
+O **catálogo** de tags é estritamente Read-Only no front-end. Use somente as rotas GET a seguir para popular seletores e etapas de formulário. Não crie, edite ou exclua tags a partir do cliente. A única escrita permitida é a vinculação de tags ao usuário autenticado, feita em `POST /onboarding/tags`.
 
 As leituras não exigem autenticação. Tags inativas são omitidas.
 
-### `GET /api/v1/tags`
+### `GET /tags`
 
 Retorna tags ativas ordenadas por `category` e `display_order`.
 
@@ -222,7 +246,7 @@ Retorna tags ativas ordenadas por `category` e `display_order`.
 
 Cada item é o modelo de tag completo. Para um seletor simples, use `id` como valor e `name` como rótulo; use `category` para filtrar ou agrupar.
 
-### `GET /api/v1/tags/steps`
+### `GET /tags/steps`
 
 Retorna as tags ativas agrupadas nas etapas do formulário. Cada grupo tem título, categoria e uma lista de tags no mesmo formato da resposta anterior:
 
@@ -262,3 +286,65 @@ Retorna as tags ativas agrupadas nas etapas do formulário. Cada grupo tem títu
 ```
 
 Os grupos são fixos e vêm sempre nas chaves `step_1`, `step_2` e `step_3`; cada `tags` pode estar vazio se não houver tags ativas naquela categoria.
+
+## 5. Onboarding: vincular tags ao usuário
+
+### `POST /onboarding/tags`
+
+Requer `Authorization: Bearer <token>`. Salva no usuário autenticado as tags escolhidas no onboarding, substituindo as tags que ele tinha antes. O corpo é um objeto com a lista de ids de tags (`tag_ids`), que precisa ter pelo menos um item e conter apenas ids existentes em `tags`.
+
+Payload:
+
+```json
+{
+  "tag_ids": [1, 4, 9]
+}
+```
+
+Resposta `200 OK`:
+
+```json
+{
+  "success": true,
+  "message": "Tags do onboarding registradas com sucesso!",
+  "data": {
+    "user": {
+      "id": 42,
+      "name": "Ana Silva",
+      "email": "ana@example.com",
+      "role": "user",
+      "created_at": "2026-10-12T18:29:15.000000Z",
+      "updated_at": "2026-10-12T18:29:15.000000Z",
+      "tags": [
+        {
+          "id": 1,
+          "name": "Frontend"
+        }
+      ]
+    }
+  }
+}
+```
+
+`tag_ids` inválido ou vazio resulta em `422` com o detalhe em `errors`. Depois do envio, `GET /user` devolve as tags já atribuídas ao usuário.
+
+As tags de um usuário também podem ser consultadas em `GET /users/{id}/tags`, que exige autenticação e devolve a lista completa de tags do usuário:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Frontend",
+      "slug": "frontend",
+      "category": "area",
+      "description": "Aplicações web",
+      "display_order": 1,
+      "is_active": true,
+      "created_at": "2026-10-12T18:29:15.000000Z",
+      "updated_at": "2026-10-12T18:29:15.000000Z"
+    }
+  ]
+}
+```

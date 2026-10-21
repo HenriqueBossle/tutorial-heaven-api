@@ -13,7 +13,7 @@ class AuthTest extends TestCase
 
     public function test_registers_a_user_and_returns_a_token(): void
     {
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password123',
@@ -42,7 +42,7 @@ class AuthTest extends TestCase
             'password' => Hash::make('password123'),
         ]);
 
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/login', [
             'email' => $user->email,
             'password' => 'password123',
         ]);
