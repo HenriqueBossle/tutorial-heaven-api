@@ -148,12 +148,15 @@ Todas as rotas de artigos exigem autenticação Bearer. Usuários autenticados p
 
 | Método e rota | Descrição | Sucesso |
 | --- | --- | --- |
-| `GET /articles` | Lista artigos paginados (10 por página). Aceita `?page=2`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
+| `GET /articles` | Lista artigos paginados (10 por página). Aceita `?page=2` e `?search=termo`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
+| `GET /articles?tags=mine` | Lista apenas os artigos que têm ao menos uma tag em comum com as tags do usuário autenticado. | `200 OK`, mesmo envelope de paginação. |
 | `GET /articles/{id}` | Consulta um artigo pelo ID. | `200 OK`, objeto do artigo. |
 | `POST /articles` | Cria um artigo. | `201 Created`, objeto criado. |
 | `PUT /articles/{id}` | Substitui o conteúdo do artigo. | `200 OK`, objeto atualizado. |
 | `PATCH /articles/{id}` | Atualiza o conteúdo do artigo. | `200 OK`, objeto atualizado. |
 | `DELETE /articles/{id}` | Exclui o artigo. | `204 No Content`, sem corpo. |
+
+O filtro `tags=mine` é o que alimenta o painel do usuário: ele cruza as tags atribuídas no onboarding (`tag_user`) com as tags de cada artigo (`article_tag`). Usuários sem tags recebem uma lista vazia.
 
 ### Codificação Base64 de `content`
 
@@ -171,9 +174,12 @@ Payload de `POST /articles` (envie `Authorization: Bearer <token>`):
 
 ```json
 {
-  "content": "IyBPbMOhLCBtdW5kbyEg8J+RiwoKQ29udGXDumRvIGNvbSBhw6fDo28gZSBjb3Jhw6fDo28g8J+SmS4="
+  "content": "IyBPbMOhLCBtdW5kbyEg8J+RiwoKQ29udGXDumRvIGNvbSBhw6fDo28gZSBjb3Jhw6fDo28g8J+SmS4=",
+  "tag_ids": [1, 6]
 }
 ```
+
+`tag_ids` é opcional: quando enviado, as tags informadas substituem as tags atuais do artigo; quando omitido, o artigo mantém as tags que já tinha.
 
 Resposta de `POST` e formato de `GET /articles/{id}`:
 
@@ -188,7 +194,17 @@ Resposta de `POST` e formato de `GET /articles/{id}`:
     "id": 42,
     "name": "Ana Silva",
     "email": "ana@example.com"
-  }
+  },
+  "tags": [
+    {
+      "id": 1,
+      "name": "Frontend"
+    },
+    {
+      "id": 6,
+      "name": "PHP / Laravel"
+    }
+  ]
 }
 ```
 
