@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Article;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -112,18 +113,31 @@ class RouteCoverageTest extends TestCase
     public function test_articles_store_route_creates_an_article_for_admin_users(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
+        $tag = Tag::create([
+            'name' => 'Laravel',
+            'slug' => 'laravel',
+            'category' => 'technology',
+            'is_active' => true,
+        ]);
 
         $this->withHeaders($this->authHeaders($admin))
             ->postJson('/articles', [
                 'content' => base64_encode('Article created through route'),
+                'tag_ids' => [$tag->id],
             ])
             ->assertCreated()
             ->assertJsonPath('content', base64_encode('Article created through route'))
-            ->assertJsonPath('user_id', $admin->id);
+            ->assertJsonPath('user_id', $admin->id)
+            ->assertJsonPath('tags.0.id', $tag->id)
+            ->assertJsonPath('tags.0.name', 'Laravel');
 
         $this->assertDatabaseHas('articles', [
             'content' => 'Article created through route',
             'id_user' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('article_tag', [
+            'article_id' => Article::where('content', 'Article created through route')->firstOrFail()->id,
+            'tag_id' => $tag->id,
         ]);
     }
 
@@ -134,17 +148,84 @@ class RouteCoverageTest extends TestCase
             'id_user' => $admin->id,
             'content' => 'Original content',
         ]);
+        $oldTag = Tag::create([
+            'name' => 'React',
+            'slug' => 'react',
+            'category' => 'technology',
+            'is_active' => true,
+        ]);
+        $newTag = Tag::create([
+            'name' => 'PHP',
+            'slug' => 'php',
+            'category' => 'technology',
+            'is_active' => true,
+        ]);
+        $article->tags()->attach($oldTag);
 
         $this->withHeaders($this->authHeaders($admin))
             ->putJson('/articles/'.$article->getKey(), [
                 'content' => base64_encode('Updated content'),
+                'tag_ids' => [$newTag->id],
             ])
             ->assertOk()
-            ->assertJsonPath('content', base64_encode('Updated content'));
+            ->assertJsonPath('content', base64_encode('Updated content'))
+            ->assertJsonPath('tags.0.id', $newTag->id)
+            ->assertJsonPath('tags.0.name', 'PHP');
 
         $this->assertDatabaseHas('articles', [
             'id' => $article->id,
             'content' => 'Updated content',
+        ]);
+        $this->assertDatabaseHas('article_tag', [
+            'article_id' => $article->id,
+            'tag_id' => $newTag->id,
+        ]);
+        $this->assertDatabaseMissing('article_tag', [
+            'article_id' => $article->id,
+            'tag_id' => $oldTag->id,
+        ]);
+    }
+
+    public function test_articles_update_route_can_remove_all_tags(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $tag = Tag::create([
+            'name' => 'Backend',
+            'slug' => 'backend',
+            'category' => 'area',
+            'is_active' => true,
+        ]);
+        $article = Article::create([
+            'id_user' => $admin->id,
+            'content' => 'Original content',
+        ]);
+        $article->tags()->attach($tag);
+
+        $this->withHeaders($this->authHeaders($admin))
+            ->patchJson('/articles/'.$article->getKey(), [
+                'content' => base64_encode('Updated content'),
+                'tag_ids' => [],
+            ])
+            ->assertOk()
+            ->assertJsonPath('tags', []);
+
+        $this->assertDatabaseCount('article_tag', 0);
+    }
+
+    public function test_articles_store_route_rejects_unknown_tag_ids(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->withHeaders($this->authHeaders($admin))
+            ->postJson('/articles', [
+                'content' => base64_encode('Article with unknown tag'),
+                'tag_ids' => [999999],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('tag_ids.0');
+
+        $this->assertDatabaseMissing('articles', [
+            'content' => 'Article with unknown tag',
         ]);
     }
 

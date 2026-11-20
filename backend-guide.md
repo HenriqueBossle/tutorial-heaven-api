@@ -148,11 +148,11 @@ Todas as rotas de artigos exigem autenticação Bearer. Usuários autenticados p
 
 | Método e rota | Descrição | Sucesso |
 | --- | --- | --- |
-| `GET /articles` | Lista artigos paginados (10 por página). Aceita `?page=2`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
-| `GET /articles/{id}` | Consulta um artigo pelo ID. | `200 OK`, objeto do artigo. |
-| `POST /articles` | Cria um artigo. | `201 Created`, objeto criado. |
-| `PUT /articles/{id}` | Substitui o conteúdo do artigo. | `200 OK`, objeto atualizado. |
-| `PATCH /articles/{id}` | Atualiza o conteúdo do artigo. | `200 OK`, objeto atualizado. |
+| `GET /articles` | Lista artigos paginados (10 por página), incluindo suas tags. Aceita `?page=2`. | `200 OK`, envelope de paginação Laravel com `data`, `links` e `meta`. |
+| `GET /articles/{id}` | Consulta um artigo pelo ID, incluindo suas tags. | `200 OK`, objeto do artigo. |
+| `POST /articles` | Cria um artigo e, opcionalmente, associa suas tags. | `201 Created`, objeto criado com `tags`. |
+| `PUT /articles/{id}` | Substitui o conteúdo e, quando informado, substitui as tags do artigo. | `200 OK`, objeto atualizado com `tags`. |
+| `PATCH /articles/{id}` | Atualiza o conteúdo e, quando informado, substitui as tags do artigo. | `200 OK`, objeto atualizado com `tags`. |
 | `DELETE /articles/{id}` | Exclui o artigo. | `204 No Content`, sem corpo. |
 
 ### Codificação Base64 de `content`
@@ -171,9 +171,28 @@ Payload de `POST /articles` (envie `Authorization: Bearer <token>`):
 
 ```json
 {
-  "content": "IyBPbMOhLCBtdW5kbyEg8J+RiwoKQ29udGXDumRvIGNvbSBhw6fDo28gZSBjb3Jhw6fDo28g8J+SmS4="
+  "content": "IyBPbMOhLCBtdW5kbyEg8J+RiwoKQ29udGXDumRvIGNvbSBhw6fDo28gZSBjb3Jhw6fDo28g8J+SmS4=",
+  "tag_ids": [1, 4, 9]
 }
 ```
+
+`tag_ids` é opcional na criação e na edição.
+
+- Na criação, a lista associa as tags informadas ao novo artigo. Quando omitida, o artigo nasce sem tags.
+- Na edição, enviar `tag_ids` substitui integralmente as tags atuais. Uma lista vazia remove todas as tags.
+- Omitir `tag_ids` em `PUT` ou `PATCH` mantém as tags já associadas ao artigo.
+- Cada item deve ser um ID inteiro existente em `tags`; IDs inexistentes retornam `422` com o erro em `tag_ids.*`.
+
+Exemplo de `PUT /articles/{id}` ou `PATCH /articles/{id}`:
+
+```json
+{
+  "content": "IyBPbMOhLCBtdW5kbyF1cGRhdGFkbyE=",
+  "tag_ids": [4, 9]
+}
+```
+
+Para remover todas as tags na edição, envie `"tag_ids": []`.
 
 Resposta de `POST` e formato de `GET /articles/{id}`:
 
@@ -188,7 +207,17 @@ Resposta de `POST` e formato de `GET /articles/{id}`:
     "id": 42,
     "name": "Ana Silva",
     "email": "ana@example.com"
-  }
+  },
+  "tags": [
+    {
+      "id": 1,
+      "name": "Frontend"
+    },
+    {
+      "id": 4,
+      "name": "PHP / Laravel"
+    }
+  ]
 }
 ```
 
