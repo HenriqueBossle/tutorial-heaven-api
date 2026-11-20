@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SyncUserTagsRequest;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 
 class OnboardingController extends Controller
@@ -12,10 +13,10 @@ class OnboardingController extends Controller
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Usuário não autenticado.'
+                'message' => 'Usuário não autenticado.',
             ], 401);
         }
 
@@ -26,8 +27,8 @@ class OnboardingController extends Controller
             'success' => true,
             'message' => 'Tags do onboarding registradas com sucesso!',
             'data' => [
-                'user' => $user->load('tags'),
-            ]
+                'user' => (new UserResource($user->load('tags')))->toArray($request),
+            ],
         ], 200);
     }
 }
