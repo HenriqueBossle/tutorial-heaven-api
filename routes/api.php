@@ -35,5 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/users/{id}/tags', [TagController::class, 'show']);
 
+    Route::get('/search/recomendados', [UserController::class, 'recommends']);
+
     Route::post('/onboarding/tags', [OnboardingController::class, 'syncTags']);
 });

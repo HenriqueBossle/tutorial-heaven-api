@@ -20,10 +20,10 @@ class DatabaseSeeder extends Seeder
         $this->call(TagSeeder::class);
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => '12345678',
-            'role' => 'admin',
+            'name' => config('app.test_user.name'),
+            'email' => config('app.test_user.email'),
+            'password' => config('app.test_user.password'),
+            'role' => config('app.test_user.role'),
         ]);
     }
 }
