@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
+use App\Http\Resources\ArticleResource;
 use App\Http\Resources\UserResource;
+use App\Models\Article;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,6 +30,19 @@ class UserController extends Controller
         }
 
         return new UserResource($user->load('tags'));
+    }
+
+    public function recommends(Request $request): AnonymousResourceCollection
+    {
+        $tagIds = $request->user()->tags()->pluck('tags.id');
+
+        $articles = Article::query()
+            ->whereHas('tags', fn ($query) => $query->whereIn('tags.id', $tagIds))
+            ->with(['tags', 'user'])
+            ->latest()
+            ->paginate(10);
+
+        return ArticleResource::collection($articles);
     }
 
     public function update(UserRequest $request, User $user): UserResource
